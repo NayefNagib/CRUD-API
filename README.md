@@ -13,7 +13,7 @@ The project implements the four main CRUD operations:
 
 It also includes automatic **Swagger UI** documentation through FastAPI.
 
-![alt text](image.png)
+![alt text](swagger.png)
 
 ## Features
 
