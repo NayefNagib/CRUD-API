@@ -1,10 +1,15 @@
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
+import sqlite3
+
+
+DATABASE = "tasks.db"
+
 
 app = FastAPI(
     title="Task API",
     version="1.0",
-    description="A simple in-memory CRUD API for managing tasks."
+    description="A simple CRUD API for managing tasks."
 )
 
 
@@ -17,11 +22,47 @@ class TaskUpdate(BaseModel):
     done: bool | None = None
 
 
-tasks = [
-    {"id": 1, "title": "Learn FastAPI", "done": False},
-    {"id": 2, "title": "Build CRUD API", "done": False},
-    {"id": 3, "title": "Publish project to GitHub", "done": False},
-]
+def get_db():
+    connection = sqlite3.connect(DATABASE)
+    connection.row_factory = sqlite3.Row
+    return connection
+
+
+def initialize_database():
+    connection = get_db()
+
+    connection.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            done BOOLEAN NOT NULL DEFAULT 0
+        )
+        """
+    )
+
+    task_count = connection.execute(
+        "SELECT COUNT(*) FROM tasks"
+    ).fetchone()[0]
+
+    if task_count == 0:
+        connection.executemany(
+            """
+            INSERT INTO tasks (title, done)
+            VALUES (?, ?)
+            """,
+            [
+                ("Learn FastAPI", False),
+                ("Build CRUD API", False),
+                ("Publish project to GitHub", False),
+            ]
+        )
+
+    connection.commit()
+    connection.close()
+
+
+initialize_database()
 
 
 @app.get("/", summary="Get API information")
@@ -40,11 +81,23 @@ def health():
 
 @app.get("/tasks", summary="List all tasks")
 def get_tasks():
-    return tasks
+    # Temporary: Stage 1 will replace this with a SQL SELECT.
+    return [
+        {"id": 1, "title": "Learn FastAPI", "done": False},
+        {"id": 2, "title": "Build CRUD API", "done": False},
+        {"id": 3, "title": "Publish project to GitHub", "done": False},
+    ]
 
 
 @app.get("/tasks/{task_id}", summary="Get a task by ID")
 def get_task(task_id: int):
+    # Temporary: Stage 1 will replace this with a SQL SELECT.
+    tasks = [
+        {"id": 1, "title": "Learn FastAPI", "done": False},
+        {"id": 2, "title": "Build CRUD API", "done": False},
+        {"id": 3, "title": "Publish project to GitHub", "done": False},
+    ]
+
     for task in tasks:
         if task["id"] == task_id:
             return task
@@ -61,63 +114,18 @@ def get_task(task_id: int):
     summary="Create a new task"
 )
 def create_task(task_data: TaskCreate):
-    title = task_data.title.strip()
-
-    if not title:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Title is required and cannot be empty"
-        )
-
-    next_id = max((task["id"] for task in tasks), default=0) + 1
-
-    new_task = {
-        "id": next_id,
-        "title": title,
-        "done": False
-    }
-
-    tasks.append(new_task)
-
-    return new_task
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail="Create will be implemented in Stage 2"
+    )
 
 
 @app.put("/tasks/{task_id}", summary="Update a task")
 def update_task(task_id: int, task_data: TaskUpdate):
-    task = next(
-        (task for task in tasks if task["id"] == task_id),
-        None
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail="Update will be implemented in Stage 3"
     )
-
-    if task is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task {task_id} not found"
-        )
-
-    updates = task_data.model_dump(exclude_unset=True)
-
-    if not updates:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Request body cannot be empty"
-        )
-
-    if "title" in updates:
-        title = updates["title"]
-
-        if not isinstance(title, str) or not title.strip():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Title is required and cannot be empty"
-            )
-
-        task["title"] = title.strip()
-
-    if "done" in updates:
-        task["done"] = updates["done"]
-
-    return task
 
 
 @app.delete(
@@ -126,17 +134,7 @@ def update_task(task_id: int, task_data: TaskUpdate):
     summary="Delete a task"
 )
 def delete_task(task_id: int):
-    task_index = next(
-        (index for index, task in enumerate(tasks) if task["id"] == task_id),
-        None
+    raise HTTPException(
+        status_code=status.HTTP_501_NOT_IMPLEMENTED,
+        detail="Delete will be implemented in Stage 3"
     )
-
-    if task_index is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Task {task_id} not found"
-        )
-
-    tasks.pop(task_index)
-
-    return None
