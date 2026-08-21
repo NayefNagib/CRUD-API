@@ -1,8 +1,23 @@
-@"
+# Virtual environment
 venv/
 .venv/
+
+# Python cache
 __pycache__/
-*.pyc
-.idea/
+*.py[cod]
+*$py.class
+
+# Environment variables
+.env
+
+# SQLite database
+*.db
+*.sqlite
+*.sqlite3
+
+# VS Code
 .vscode/
-"@ | Out-File -Encoding utf8 .gitignore
+
+# OS files
+.DS_Store
+Thumbs.db
